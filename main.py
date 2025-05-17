@@ -2,7 +2,10 @@ import os
 import openai
 import requests
 import time
-import json
+import feedparser
+from bs4 import BeautifulSoup
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
 
 # 환경변수 불러오기
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -13,10 +16,8 @@ heygen_token = os.getenv("HEYGEN_API_TOKEN")
 intro_url = os.getenv("INTRO_VIDEO_URL")
 bgm_url = os.getenv("BACKGROUND_MUSIC_URL")
 
-# 1. 뉴스 기사 수집 (네이버 뉴스 예시)
+# 1. 뉴스 기사 수집
 def get_latest_news():
-    from bs4 import BeautifulSoup
-    import feedparser
     rss = feedparser.parse("https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko")
     link = rss.entries[0].link
     res = requests.get(link)
@@ -25,19 +26,18 @@ def get_latest_news():
     text = "\n".join(p.text for p in paragraphs if len(p.text) > 30)
     return text[:2000]
 
-# 2. 요약 (ChatGPT)
+# 2. 요약 생성
 def summarize(text):
-    client = openai.OpenAI()
-    response = client.chat.completions.create(
-        model="gpt-4",
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "뉴스를 짧고 재미있는 유튜브 숏츠 대본으로 요약해줘."},
+            {"role": "system", "content": "Summarize the news article into a short and engaging script for a YouTube Shorts video."},
             {"role": "user", "content": text}
         ]
     )
     return response.choices[0].message.content.strip()
 
-# 3. Heygen으로 영상 생성
+# 3. Heygen 영상 생성
 def create_heygen_video(script):
     url = "https://api.heygen.com/v1/video.generate"
     headers = {
@@ -46,8 +46,8 @@ def create_heygen_video(script):
     }
     payload = {
         "script": script,
-        "voice": "en_us_001",  # 한글 지원 음성으로 변경 가능
-        "avatar_id": "default_avatar_1"  # 기본 아바타
+        "voice": "en_us_001",
+        "avatar_id": "default_avatar_1"
     }
     res = requests.post(url, headers=headers, json=payload)
     video_id = res.json()["data"]["video_id"]
@@ -65,11 +65,8 @@ def download_heygen_video(video_id):
         time.sleep(5)
     return None
 
-# 5. YouTube 업로드 (단순 업로드 예시)
+# 5. YouTube 업로드
 def upload_to_youtube(video_url, title):
-    from google.oauth2.credentials import Credentials
-    from googleapiclient.discovery import build
-
     creds = Credentials(
         None,
         refresh_token=youtube_refresh_token,
@@ -84,13 +81,16 @@ def upload_to_youtube(video_url, title):
     with open("final.mp4", "wb") as f:
         f.write(video_data)
 
+    hashtags = "#News #AI #Summary #Shorts"
+    description = f"Today's news summarized by AI.\n\n{hashtags}"
+
     request = youtube.videos().insert(
         part="snippet,status",
         body={
             "snippet": {
                 "title": title,
-                "description": "자동 생성된 영상입니다.",
-                "tags": ["뉴스", "요약", "AI Shorts"],
+                "description": description,
+                "tags": ["News", "AI Summary", "Automated Shorts"],
                 "categoryId": "25"
             },
             "status": {"privacyStatus": "public"}
@@ -106,7 +106,7 @@ summary = summarize(news)
 video_id = create_heygen_video(summary)
 video_url = download_heygen_video(video_id)
 if video_url:
-    youtube_id = upload_to_youtube(video_url, "오늘의 AI 뉴스 요약")
-    print("업로드 완료! https://youtube.com/watch?v=" + youtube_id)
+    youtube_id = upload_to_youtube(video_url, "Today's AI News Summary")
+    print("Upload complete! https://youtube.com/watch?v=" + youtube_id)
 else:
-    print("영상 생성 실패")
+    print("Video generation failed")
