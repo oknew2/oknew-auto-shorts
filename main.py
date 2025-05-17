@@ -1,112 +1,92 @@
-import os
-import openai
-import requests
-import time
-import feedparser
-from bs4 import BeautifulSoup
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
-
-# 환경변수 불러오기
-openai.api_key = os.getenv("OPENAI_API_KEY")
-youtube_client_id = os.getenv("YOUTUBE_CLIENT_ID")
-youtube_client_secret = os.getenv("YOUTUBE_CLIENT_SECRET")
-youtube_refresh_token = os.getenv("YOUTUBE_REFRESH_TOKEN")
-heygen_token = os.getenv("HEYGEN_API_TOKEN")
-intro_url = os.getenv("INTRO_VIDEO_URL")
-bgm_url = os.getenv("BACKGROUND_MUSIC_URL")
-
-# 1. 뉴스 기사 수집
-def get_latest_news():
-    rss = feedparser.parse("https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko")
-    link = rss.entries[0].link
-    res = requests.get(link)
-    soup = BeautifulSoup(res.text, "html.parser")
-    paragraphs = soup.find_all("p")
-    text = "\n".join(p.text for p in paragraphs if len(p.text) > 30)
-    return text[:2000]
-
-# 2. 요약 생성
-def summarize(text):
+Downloading pyasn1_modules-0.4.2-py3-none-any.whl (181 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 181.3/181.3 kB 10.8 MB/s eta 0:00:00
+Downloading pydantic-2.11.4-py3-none-any.whl (443 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 443.9/443.9 kB 12.6 MB/s eta 0:00:00
+Downloading pydantic_core-2.33.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.0 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 18.6 MB/s eta 0:00:00
+Downloading requests_oauthlib-2.0.0-py2.py3-none-any.whl (24 kB)
+Downloading rsa-4.9.1-py3-none-any.whl (34 kB)
+Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
+Downloading soupsieve-2.7-py3-none-any.whl (36 kB)
+Downloading tqdm-4.67.1-py3-none-any.whl (78 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.5/78.5 kB 22.6 MB/s eta 0:00:00
+Downloading typing_extensions-4.13.2-py3-none-any.whl (45 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.8/45.8 kB 13.2 MB/s eta 0:00:00
+Downloading uritemplate-4.1.1-py2.py3-none-any.whl (10 kB)
+Downloading urllib3-2.4.0-py3-none-any.whl (128 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 128.7/128.7 kB 26.2 MB/s eta 0:00:00
+Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
+Downloading googleapis_common_protos-1.70.0-py3-none-any.whl (294 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 294.5/294.5 kB 23.1 MB/s eta 0:00:00
+Downloading oauthlib-3.2.2-py3-none-any.whl (151 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 151.7/151.7 kB 31.4 MB/s eta 0:00:00
+Downloading proto_plus-1.26.1-py3-none-any.whl (50 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 50.2/50.2 kB 14.6 MB/s eta 0:00:00
+Downloading protobuf-6.31.0-cp39-abi3-manylinux2014_x86_64.whl (320 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 320.9/320.9 kB 23.3 MB/s eta 0:00:00
+Downloading pyasn1-0.6.1-py3-none-any.whl (83 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 83.1/83.1 kB 22.7 MB/s eta 0:00:00
+Downloading pyparsing-3.2.3-py3-none-any.whl (111 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 111.1/111.1 kB 29.6 MB/s eta 0:00:00
+Downloading typing_inspection-0.4.0-py3-none-any.whl (14 kB)
+Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+Building wheels for collected packages: sgmllib3k
+  Building wheel for sgmllib3k (pyproject.toml): started
+  Building wheel for sgmllib3k (pyproject.toml): finished with status 'done'
+  Created wheel for sgmllib3k: filename=sgmllib3k-1.0.0-py3-none-any.whl size=6089 sha256=4a51bd3193c8e7c5233b5ed2d3cc73fb4baab2b4e6eed47bdb7f2e99cb179259
+  Stored in directory: /opt/render/.cache/wheels/3b/25/2a/105d6a15df6914f4d15047691c6c28f9052cc1173e40285d03
+Successfully built sgmllib3k
+Installing collected packages: sgmllib3k, urllib3, uritemplate, typing-extensions, tqdm, soupsieve, sniffio, pyparsing, pyasn1, protobuf, oauthlib, jiter, idna, h11, feedparser, distro, charset-normalizer, certifi, cachetools, annotated-types, typing-inspection, rsa, requests, pydantic-core, pyasn1-modules, proto-plus, httplib2, httpcore, googleapis-common-protos, beautifulsoup4, anyio, requests-oauthlib, pydantic, httpx, google-auth, openai, google-auth-oauthlib, google-auth-httplib2, google-api-core, google-api-python-client
+Successfully installed annotated-types-0.7.0 anyio-4.9.0 beautifulsoup4-4.13.4 cachetools-5.5.2 certifi-2025.4.26 charset-normalizer-3.4.2 distro-1.9.0 feedparser-6.0.11 google-api-core-2.24.2 google-api-python-client-2.169.0 google-auth-2.40.1 google-auth-httplib2-0.2.0 google-auth-oauthlib-1.2.2 googleapis-common-protos-1.70.0 h11-0.16.0 httpcore-1.0.9 httplib2-0.22.0 httpx-0.28.1 idna-3.10 jiter-0.9.0 oauthlib-3.2.2 openai-1.79.0 proto-plus-1.26.1 protobuf-6.31.0 pyasn1-0.6.1 pyasn1-modules-0.4.2 pydantic-2.11.4 pydantic-core-2.33.2 pyparsing-3.2.3 requests-2.32.3 requests-oauthlib-2.0.0 rsa-4.9.1 sgmllib3k-1.0.0 sniffio-1.3.1 soupsieve-2.7 tqdm-4.67.1 typing-extensions-4.13.2 typing-inspection-0.4.0 uritemplate-4.1.1 urllib3-2.4.0
+[notice] A new release of pip is available: 24.0 -> 25.1.1
+[notice] To update, run: pip install --upgrade pip
+==> Uploading build...
+==> Uploaded in 6.6s. Compression took 2.2s
+==> Build successful 🎉
+==> Deploying...
+==> Your service is live 🎉
+==> Running 'python main.py'
+Traceback (most recent call last):
+  File "/opt/render/project/src/main.py", line 105, in <module>
+    summary = summarize(news)
+              ^^^^^^^^^^^^^^^
+  File "/opt/render/project/src/main.py", line 31, in summarize
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "Summarize the news article into a short and engaging script for a YouTube Shorts video."},
-            {"role": "user", "content": text}
-        ]
-    )
-    return response.choices[0].message.content.strip()
-
-# 3. Heygen 영상 생성
-def create_heygen_video(script):
-    url = "https://api.heygen.com/v1/video.generate"
-    headers = {
-        "Authorization": f"Bearer {heygen_token}",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "script": script,
-        "voice": "en_us_001",
-        "avatar_id": "default_avatar_1"
-    }
-    res = requests.post(url, headers=headers, json=payload)
-    video_id = res.json()["data"]["video_id"]
-    return video_id
-
-# 4. Heygen 영상 다운로드
-def download_heygen_video(video_id):
-    url = f"https://api.heygen.com/v1/video.status?video_id={video_id}"
-    headers = {"Authorization": f"Bearer {heygen_token}"}
-    for _ in range(30):
-        res = requests.get(url, headers=headers)
-        status = res.json()["data"]["status"]
-        if status == "done":
-            return res.json()["data"]["download_url"]
-        time.sleep(5)
-    return None
-
-# 5. YouTube 업로드
-def upload_to_youtube(video_url, title):
-    creds = Credentials(
-        None,
-        refresh_token=youtube_refresh_token,
-        client_id=youtube_client_id,
-        client_secret=youtube_client_secret,
-        token_uri="https://oauth2.googleapis.com/token"
-    )
-    youtube = build("youtube", "v3", credentials=creds)
-
-    # 영상 다운로드
-    video_data = requests.get(video_url).content
-    with open("final.mp4", "wb") as f:
-        f.write(video_data)
-
-    hashtags = "#News #AI #Summary #Shorts"
-    description = f"Today's news summarized by AI.\n\n{hashtags}"
-
-    request = youtube.videos().insert(
-        part="snippet,status",
-        body={
-            "snippet": {
-                "title": title,
-                "description": description,
-                "tags": ["News", "AI Summary", "Automated Shorts"],
-                "categoryId": "25"
-            },
-            "status": {"privacyStatus": "public"}
-        },
-        media_body="final.mp4"
-    )
-    response = request.execute()
-    return response["id"]
-
-# 실행 흐름
-news = get_latest_news()
-summary = summarize(news)
-video_id = create_heygen_video(summary)
-video_url = download_heygen_video(video_id)
-if video_url:
-    youtube_id = upload_to_youtube(video_url, "Today's AI News Summary")
-    print("Upload complete! https://youtube.com/watch?v=" + youtube_id)
-else:
-    print("Video generation failed")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/render/project/src/.venv/lib/python3.11/site-packages/openai/lib/_old_api.py", line 39, in __call__
+    raise APIRemovedInV1(symbol=self._symbol)
+openai.lib._old_api.APIRemovedInV1: 
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+==> Running 'python main.py'
+Traceback (most recent call last):
+  File "/opt/render/project/src/main.py", line 105, in <module>
+    summary = summarize(news)
+              ^^^^^^^^^^^^^^^
+  File "/opt/render/project/src/main.py", line 31, in summarize
+    response = openai.ChatCompletion.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/render/project/src/.venv/lib/python3.11/site-packages/openai/lib/_old_api.py", line 39, in __call__
+    raise APIRemovedInV1(symbol=self._symbol)
+openai.lib._old_api.APIRemovedInV1: 
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+==> Running 'python main.py'
+Traceback (most recent call last):
+  File "/opt/render/project/src/main.py", line 105, in <module>
+    summary = summarize(news)
+              ^^^^^^^^^^^^^^^
+  File "/opt/render/project/src/main.py", line 31, in summarize
+    response = openai.ChatCompletion.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/render/project/src/.venv/lib/python3.11/site-packages/openai/lib/_old_api.py", line 39, in __call__
+    raise APIRemovedInV1(symbol=self._symbol)
+openai.lib._old_api.APIRemovedInV1: 
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
