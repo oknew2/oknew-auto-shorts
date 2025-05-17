@@ -5,10 +5,11 @@ import openai
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 
+# 환경변수 불러오기
 load_dotenv()
 
-# 환경 변수 불러오기
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# API 키 설정
+openai.api_key = os.getenv("OPENAI_API_KEY")
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 YOUTUBE_CLIENT_ID = os.getenv("YOUTUBE_CLIENT_ID")
 YOUTUBE_CLIENT_SECRET = os.getenv("YOUTUBE_CLIENT_SECRET")
@@ -16,10 +17,7 @@ YOUTUBE_REFRESH_TOKEN = os.getenv("YOUTUBE_REFRESH_TOKEN")
 NEWS_RSS_URL = os.getenv("NEWS_RSS_URL")
 INTRO_VIDEO_PATH = os.getenv("INTRO_VIDEO_PATH")
 
-# OpenAI API 설정
-client = openai.OpenAI(api_key=OPENAI_API_KEY)
-
-# 1. 뉴스 가져오기
+# 1. 뉴스 불러오기
 def fetch_news():
     feed = feedparser.parse(NEWS_RSS_URL)
     news_items = []
@@ -33,22 +31,23 @@ def fetch_news():
 
 # 2. 뉴스 요약
 def summarize(news_items):
-    combined = "\n".join([f"Title: {item['title']}\nSummary: {item['summary']}" for item in news_items])
+    combined = "\n".join(
+        [f"Title: {item['title']}\nSummary: {item['summary']}" for item in news_items]
+    )
     prompt = f"Summarize this into a short, witty, entertaining video script for YouTube Shorts (English):\n{combined}"
 
-    response = client.chat.completions.create(
+    response = openai.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
     )
-
     return response.choices[0].message.content.strip()
 
-# 3. 대본 저장
+# 3. 텍스트 파일로 저장 (향후 영상 제작 연결 가능)
 def create_video_script(summary_text):
     with open("output.txt", "w") as f:
         f.write(summary_text)
-    print("✅ 대본 저장 완료")
+    print(">> 대본 저장 완료")
 
 # 4. 메인 실행
 if __name__ == "__main__":
