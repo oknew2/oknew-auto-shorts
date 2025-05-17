@@ -3,23 +3,16 @@ import requests
 import feedparser
 import openai
 from dotenv import load_dotenv
-from googleapiclient.discovery import build
 
-# 환경변수 불러오기
+# 환경 변수 불러오기
 load_dotenv()
 
-# API 키 설정
+# OpenAI API 키 설정
 openai.api_key = os.getenv("OPENAI_API_KEY")
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-YOUTUBE_CLIENT_ID = os.getenv("YOUTUBE_CLIENT_ID")
-YOUTUBE_CLIENT_SECRET = os.getenv("YOUTUBE_CLIENT_SECRET")
-YOUTUBE_REFRESH_TOKEN = os.getenv("YOUTUBE_REFRESH_TOKEN")
-NEWS_RSS_URL = os.getenv("NEWS_RSS_URL")
-INTRO_VIDEO_PATH = os.getenv("INTRO_VIDEO_PATH")
 
-# 1. 뉴스 불러오기
+# 뉴스 불러오기
 def fetch_news():
-    feed = feedparser.parse(NEWS_RSS_URL)
+    feed = feedparser.parse(os.getenv("NEWS_RSS_URL"))
     news_items = []
     for entry in feed.entries[:4]:
         news_items.append({
@@ -29,7 +22,7 @@ def fetch_news():
         })
     return news_items
 
-# 2. 뉴스 요약
+# 뉴스 요약
 def summarize(news_items):
     combined = "\n".join(
         [f"Title: {item['title']}\nSummary: {item['summary']}" for item in news_items]
@@ -43,13 +36,13 @@ def summarize(news_items):
     )
     return response.choices[0].message.content.strip()
 
-# 3. 텍스트 파일로 저장 (향후 영상 제작 연결 가능)
+# 결과 저장
 def create_video_script(summary_text):
     with open("output.txt", "w") as f:
         f.write(summary_text)
     print(">> 대본 저장 완료")
 
-# 4. 메인 실행
+# 메인 실행
 if __name__ == "__main__":
     print(">> 뉴스 불러오는 중...")
     news = fetch_news()
